@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/preferences.dart';
+import '../utils/preferences.dart';
 
 class PreferencesDialog extends StatefulWidget {
   final Preferences preferences;

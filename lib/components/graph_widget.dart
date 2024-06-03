@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'node_widget.dart';
 import 'edge_widget.dart';
-import '../../models/graph.dart';
-import '../../models/node.dart';
+import '../models/graph.dart';
+import '../models/node.dart';
 
 class GraphWidget extends StatefulWidget {
   final Graph graph;

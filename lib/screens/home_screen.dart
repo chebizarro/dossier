@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../components/prefrences_dialog.dart';
-import '../../models/preferences.dart';
+import '../utils/preferences.dart';
 import 'graph_screen.dart';
-import '../../models/graph.dart';
-import '../../models/node_type.dart';
+import '../models/graph.dart';
+import '../models/node_type.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'dart:io';

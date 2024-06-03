@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/node.dart';
+import '../models/node.dart';
 
 class NodeProperties extends StatelessWidget {
   final Node node;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'models/preferences.dart';
-import 'ui/screens/home_screen.dart';
+import 'utils/preferences.dart';
+import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

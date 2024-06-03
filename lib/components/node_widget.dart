@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../models/node.dart';
+import '../models/node.dart';
 
 class NodeWidget extends StatefulWidget {
   final Node node;

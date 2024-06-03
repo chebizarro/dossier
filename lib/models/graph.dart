@@ -3,9 +3,10 @@ import 'node_type.dart';
 
 class Graph {
   String title;
+  String? filePath;
   List<Node> nodes;
 
-  Graph({required this.title, List<Node>? nodes})
+  Graph({required this.title, this.filePath, List<Node>? nodes})
       : nodes = nodes ?? [];
 
   factory Graph.fromJson(Map<String, dynamic> json, List<NodeType> nodeTypes) {
