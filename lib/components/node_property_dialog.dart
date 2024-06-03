@@ -4,8 +4,13 @@ import '../models/node.dart';
 class NodePropertyDialog extends StatefulWidget {
   final Node node;
   final ValueChanged<Node> onSave;
+  final VoidCallback onUndoAction;
 
-  NodePropertyDialog({required this.node, required this.onSave});
+  NodePropertyDialog({
+    required this.node,
+    required this.onSave,
+    required this.onUndoAction,
+  });
 
   @override
   _NodePropertyDialogState createState() => _NodePropertyDialogState();
@@ -14,10 +19,19 @@ class NodePropertyDialog extends StatefulWidget {
 class _NodePropertyDialogState extends State<NodePropertyDialog> {
   late TextEditingController _labelController;
   late TextEditingController _propertyController;
+  late Node _originalNode;
 
   @override
   void initState() {
     super.initState();
+    _originalNode = Node(
+      id: widget.node.id,
+      label: widget.node.label,
+      nodeType: widget.node.nodeType,
+      x: widget.node.x,
+      y: widget.node.y,
+      properties: Map<String, dynamic>.from(widget.node.properties),
+    );
     _labelController = TextEditingController(text: widget.node.label);
     _propertyController = TextEditingController(text: widget.node.properties['example_property'] ?? '');
   }
@@ -30,6 +44,7 @@ class _NodePropertyDialogState extends State<NodePropertyDialog> {
   }
 
   void _save() {
+    widget.onUndoAction();
     setState(() {
       widget.node.label = _labelController.text;
       widget.node.properties['example_property'] = _propertyController.text;

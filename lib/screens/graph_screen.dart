@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import '../utils/preferences.dart';
 import '../components/graph_widget.dart';
 import '../models/graph.dart';
 import '../models/node.dart';
 import '../models/node_type.dart';
+import '../models/edge.dart';
 import '../components/graph_title_widget.dart';
 import '../components/node_type_selector.dart';
 import '../utils/graph_operations.dart';
 import '../components/node_property_dialog.dart';
+import '../utils/undo_stack.dart';
 
 class GraphScreen extends StatefulWidget {
   final Preferences preferences;
@@ -32,6 +35,8 @@ class _GraphScreenState extends State<GraphScreen> {
   Offset? _dragOffset;
   Set<Node> _selectedNodes = {};
   bool _isShiftPressed = false;
+  Node? _edgeStartNode;
+  final UndoStack _undoStack = UndoStack();
 
   @override
   void initState() {
@@ -49,24 +54,38 @@ class _GraphScreenState extends State<GraphScreen> {
 
   void _addNodeAtPosition(Offset position) {
     if (_selectedNodeType != null) {
+      final newNode = Node(
+        id: DateTime.now().toString(),
+        label: _selectedNodeType!.label,
+        nodeType: _selectedNodeType!,
+        x: position.dx,
+        y: position.dy,
+      );
+
       setState(() {
-        final newNode = Node(
-          id: DateTime.now().toString(),
-          label: _selectedNodeType!.label,
-          nodeType: _selectedNodeType!,
-          x: position.dx,
-          y: position.dy,
-        );
         _graph.addNode(newNode);
-        _selectedNodes.clear(); // Clear any already selected nodes
-        _selectedNodes.add(newNode); // Select the new node by default
-        _selectedNodeType = null; // Reset the selected node type
-        print('Node added at position: (${position.dx}, ${position.dy})'); // Debug print
+        _selectedNodes.clear();
+        _selectedNodes.add(newNode);
+        _selectedNodeType = null;
       });
 
-      // Show node property dialog after adding the node
+      _undoStack.addAction(
+        UndoAction(
+          undo: () {
+            setState(() {
+              _graph.removeNode(newNode);
+            });
+          },
+          redo: () {
+            setState(() {
+              _graph.addNode(newNode);
+            });
+          },
+        ),
+      );
+
       WidgetsBinding.instance?.addPostFrameCallback((_) {
-        _showNodePropertyDialog(_graph.nodes.last);
+        _showNodePropertyDialog(newNode);
       });
     } else {
       print('No node type selected'); // Debug print
@@ -74,6 +93,15 @@ class _GraphScreenState extends State<GraphScreen> {
   }
 
   void _showNodePropertyDialog(Node node) {
+    final originalNode = Node(
+      id: node.id,
+      label: node.label,
+      nodeType: node.nodeType,
+      x: node.x,
+      y: node.y,
+      properties: Map<String, dynamic>.from(node.properties),
+    );
+
     showDialog(
       context: context,
       builder: (context) {
@@ -81,9 +109,24 @@ class _GraphScreenState extends State<GraphScreen> {
           node: node,
           onSave: (updatedNode) {
             setState(() {
-              // Update the node in the graph
               _graph.nodes = _graph.nodes.map((n) => n.id == updatedNode.id ? updatedNode : n).toList();
             });
+          },
+          onUndoAction: () {
+            _undoStack.addAction(
+              UndoAction(
+                undo: () {
+                  setState(() {
+                    _graph.nodes = _graph.nodes.map((n) => n.id == originalNode.id ? originalNode : n).toList();
+                  });
+                },
+                redo: () {
+                  setState(() {
+                    _graph.nodes = _graph.nodes.map((n) => n.id == node.id ? node : n).toList();
+                  });
+                },
+              ),
+            );
           },
         );
       },
@@ -92,17 +135,31 @@ class _GraphScreenState extends State<GraphScreen> {
 
   void _onNodeTap(Node node, bool isShiftPressed) {
     setState(() {
-      if (isShiftPressed) {
-        if (_selectedNodes.contains(node)) {
-          _selectedNodes.remove(node);
-        } else {
-          _selectedNodes.add(node);
-        }
+      if (_edgeStartNode == null) {
+        _edgeStartNode = node;
       } else {
-        _selectedNodes.clear();
-        _selectedNodes.add(node);
+        final newEdge = Edge(
+          id: DateTime.now().toString(),
+          fromNodeId: _edgeStartNode!.id,
+          toNodeId: node.id,
+        );
+        _graph.addEdge(newEdge);
+        _undoStack.addAction(
+          UndoAction(
+            undo: () {
+              setState(() {
+                _graph.removeEdge(newEdge);
+              });
+            },
+            redo: () {
+              setState(() {
+                _graph.addEdge(newEdge);
+              });
+            },
+          ),
+        );
+        _edgeStartNode = null;
       }
-      print('Selected nodes: ${_selectedNodes.map((n) => n.label).join(', ')}'); // Debug print
     });
   }
 
@@ -113,6 +170,7 @@ class _GraphScreenState extends State<GraphScreen> {
   void _onBackgroundTap(TapUpDetails details) {
     setState(() {
       _selectedNodes.clear();
+      _edgeStartNode = null;
     });
     _addNodeAtPosition(details.localPosition);
   }
@@ -145,8 +203,24 @@ class _GraphScreenState extends State<GraphScreen> {
   }
 
   void _handleKeyEvent(RawKeyEvent event) {
+    if (event is RawKeyDownEvent) {
+      if (event.isControlPressed && event.logicalKey == LogicalKeyboardKey.keyZ) {
+        _undo();
+      } else if (event.isControlPressed && event.logicalKey == LogicalKeyboardKey.keyY) {
+        _redo();
+      }
+    }
+  }
+
+  void _undo() {
     setState(() {
-      _isShiftPressed = event.isShiftPressed;
+      _undoStack.undo();
+    });
+  }
+
+  void _redo() {
+    setState(() {
+      _undoStack.redo();
     });
   }
 
@@ -184,6 +258,14 @@ class _GraphScreenState extends State<GraphScreen> {
           onTitleChanged: _updateTitle,
         ),
         actions: [
+          IconButton(
+            icon: Icon(Icons.undo),
+            onPressed: _undoStack.canUndo ? _undo : null,
+          ),
+          IconButton(
+            icon: Icon(Icons.redo),
+            onPressed: _undoStack.canRedo ? _redo : null,
+          ),
           IconButton(
             icon: Icon(Icons.save),
             onPressed: _saveGraph,
