@@ -33,6 +33,7 @@ class _GraphScreenState extends State<GraphScreen> {
   NodeType? _selectedNodeType;
   Node? _draggingNode;
   Offset? _dragOffset;
+  Offset? _initialDragPosition;
   Set<Node> _selectedNodes = {};
   bool _isShiftPressed = false;
   final UndoStack _undoStack = UndoStack();
@@ -125,13 +126,13 @@ class _GraphScreenState extends State<GraphScreen> {
 
   void _onDeleteNode(Node node) {
     setState(() {
-      _graph.removeNode(node);
+      _nodeEdgeHandler.removeNode(node);
     });
   }
 
   void _onDeleteEdge(Edge edge) {
     setState(() {
-      _graph.removeEdge(edge);
+      _nodeEdgeHandler.removeEdge(edge);
     });
   }
 
@@ -152,6 +153,7 @@ class _GraphScreenState extends State<GraphScreen> {
       setState(() {
         _draggingNode = node;
         _dragOffset = position;
+        _initialDragPosition = Offset(node.x, node.y);
       });
     }
   }
@@ -168,9 +170,14 @@ class _GraphScreenState extends State<GraphScreen> {
   }
 
   void _onNodeDragEnd() {
+    if (_draggingNode != null && _initialDragPosition != null) {
+      final newPosition = Offset(_draggingNode!.x, _draggingNode!.y);
+      _nodeEdgeHandler.moveNode(_draggingNode!, _initialDragPosition!, newPosition);
+    }
     setState(() {
       _draggingNode = null;
       _dragOffset = null;
+      _initialDragPosition = null;
     });
   }
 

@@ -41,68 +41,7 @@ class GraphWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onSecondaryTapDown: (details) {
-        final RenderBox box = context.findRenderObject() as RenderBox;
-        final Offset localOffset = box.globalToLocal(details.globalPosition);
-
-        for (var node in graph.nodes) {
-          if (_isPointInNode(localOffset, node)) {
-            showMenu(
-              context: context,
-              position: RelativeRect.fromLTRB(
-                details.globalPosition.dx,
-                details.globalPosition.dy,
-                details.globalPosition.dx,
-                details.globalPosition.dy,
-              ),
-              items: [
-                PopupMenuItem<String>(
-                  value: 'edit_properties',
-                  child: Text('Edit Properties'),
-                  onTap: () => onEditNodeProperties(node),
-                ),
-                PopupMenuItem<String>(
-                  value: 'add_edge',
-                  child: Text('Add Edge'),
-                  onTap: () => onAddEdge(node),
-                ),
-                PopupMenuItem<String>(
-                  value: 'delete_node',
-                  child: Text('Delete Node'),
-                  onTap: () => onDeleteNode(node),
-                ),
-              ],
-            );
-            return;
-          }
-        }
-        for (var edge in graph.edges) {
-          final fromNode = graph.nodes.firstWhere((node) => node.id == edge.fromNodeId);
-          final toNode = graph.nodes.firstWhere((node) => node.id == edge.toNodeId);
-          if (_isPointOnLineSegment(localOffset, Offset(fromNode.x, fromNode.y), Offset(toNode.x, toNode.y))) {
-            showMenu(
-              context: context,
-              position: RelativeRect.fromLTRB(
-                details.globalPosition.dx,
-                details.globalPosition.dy,
-                details.globalPosition.dx,
-                details.globalPosition.dy,
-              ),
-              items: [
-                PopupMenuItem<String>(
-                  value: 'edit_edge',
-                  child: Text('Edit Edge'),
-                  onTap: () => onEditEdge(edge),
-                ),
-                PopupMenuItem<String>(
-                  value: 'delete_edge',
-                  child: Text('Delete Edge'),
-                  onTap: () => onDeleteEdge(edge),
-                ),
-              ],
-            );
-            return;
-          }
-        }
+        _showContextMenu(context, details.globalPosition, details.localPosition);
       },
       child: Stack(
         children: [
@@ -142,10 +81,72 @@ class GraphWidget extends StatelessWidget {
     );
   }
 
+  void _showContextMenu(BuildContext context, Offset globalPosition, Offset localPosition) {
+    for (var node in graph.nodes) {
+      if (_isPointInNode(localPosition, node)) {
+        showMenu(
+          context: context,
+          position: RelativeRect.fromLTRB(
+            globalPosition.dx,
+            globalPosition.dy,
+            globalPosition.dx,
+            globalPosition.dy,
+          ),
+          items: [
+            PopupMenuItem<String>(
+              value: 'edit_properties',
+              child: Text('Edit Properties'),
+              onTap: () => onEditNodeProperties(node),
+            ),
+            PopupMenuItem<String>(
+              value: 'add_edge',
+              child: Text('Add Edge'),
+              onTap: () => onAddEdge(node),
+            ),
+            PopupMenuItem<String>(
+              value: 'delete_node',
+              child: Text('Delete Node'),
+              onTap: () => onDeleteNode(node),
+            ),
+          ],
+        );
+        return;
+      }
+    }
+    for (var edge in graph.edges) {
+      final fromNode = graph.nodes.firstWhere((node) => node.id == edge.fromNodeId);
+      final toNode = graph.nodes.firstWhere((node) => node.id == edge.toNodeId);
+      if (_isPointOnLineSegment(localPosition, Offset(fromNode.x, fromNode.y), Offset(toNode.x, toNode.y))) {
+        showMenu(
+          context: context,
+          position: RelativeRect.fromLTRB(
+            globalPosition.dx,
+            globalPosition.dy,
+            globalPosition.dx,
+            globalPosition.dy,
+          ),
+          items: [
+            PopupMenuItem<String>(
+              value: 'edit_edge',
+              child: Text('Edit Edge'),
+              onTap: () => onEditEdge(edge),
+            ),
+            PopupMenuItem<String>(
+              value: 'delete_edge',
+              child: Text('Delete Edge'),
+              onTap: () => onDeleteEdge(edge),
+            ),
+          ],
+        );
+        return;
+      }
+    }
+  }
+
   bool _isPointInNode(Offset point, Node node) {
     final double radius = 24.0; // Adjust radius to match node size
-    final dx = point.dx - node.x - radius;
-    final dy = point.dy - node.y - radius;
+    final dx = point.dx - (node.x + radius); // Correct the position to be at the center of the node
+    final dy = point.dy - (node.y + radius); // Correct the position to be at the center of the node
     return dx * dx + dy * dy <= radius * radius;
   }
 
