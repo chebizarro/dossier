@@ -36,6 +36,11 @@ class UndoStack {
       _actions[_index].redo();
     }
   }
+
+  void clear() {
+    _actions.clear();
+    _index = -1;
+  }
 }
 
 class AddNodeAction implements UndoableAction {

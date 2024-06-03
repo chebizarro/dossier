@@ -48,8 +48,18 @@ class _GraphScreenState extends State<GraphScreen> {
     super.initState();
     _graph = widget.initialGraph ?? Graph(title: 'Untitled Graph');
     _nodeEdgeHandler = NodeEdgeHandler(graph: _graph, undoStack: _undoStack);
-    _graphActions = GraphActions(graph: _graph, nodeTypes: widget.nodeTypes);
+    _graphActions = GraphActions(
+      graph: _graph,
+      nodeTypes: widget.nodeTypes,
+      onClearUndoStack: _clearUndoStack,
+    );
     FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  void _clearUndoStack() {
+    setState(() {
+      _undoStack.clear();
+    });
   }
 
   void _selectNodeType(NodeType nodeType) {

@@ -1,38 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
+import 'dart:io';
 import '../models/graph.dart';
 import '../models/node_type.dart';
-import '../utils/graph_operations.dart';
 
 class GraphActions {
-  Graph _graph;
+  Graph graph;
   final List<NodeType> nodeTypes;
+  final VoidCallback onClearUndoStack;
+  String? filePath;
 
-  GraphActions({
-    required Graph graph,
-    required this.nodeTypes,
-  }) : _graph = graph;
+  GraphActions({required this.graph, required this.nodeTypes, required this.onClearUndoStack});
 
-  Graph get graph => _graph;
-
-  set graph(Graph newGraph) {
-    _graph = newGraph;
+  void updateTitle(String title) {
+    graph.title = title;
   }
 
   Future<void> saveGraph() async {
-    final path = await saveGraphToFile(_graph);
-    if (path != null) {
-      _graph.filePath = path;
+    final jsonGraph = jsonEncode(graph.toJson());
+
+    if (filePath == null) {
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Graph',
+        fileName: '${graph.title}.json',
+      );
+
+      if (result != null) {
+        filePath = result;
+      }
+    }
+
+    if (filePath != null) {
+      final file = File(filePath!);
+      await file.writeAsString(jsonGraph);
     }
   }
 
-  Future<void> openGraph(Function(Graph) onGraphLoaded) async {
-    final graph = await openGraphFromFile(nodeTypes);
-    if (graph != null) {
-      onGraphLoaded(graph);
-    }
-  }
+  Future<void> openGraph(ValueChanged<Graph> onGraphLoaded) async {
+    final result = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Open Graph',
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
 
-  void updateTitle(String title) {
-    _graph.title = title;
+    if (result != null) {
+      filePath = result.files.single.path!;
+      final file = File(filePath!);
+      final jsonGraph = jsonDecode(await file.readAsString());
+      final newGraph = Graph.fromJson(jsonGraph, nodeTypes);
+      onGraphLoaded(newGraph);
+      onClearUndoStack();
+    }
   }
 }
