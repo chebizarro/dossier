@@ -1,0 +1,182 @@
+[
+  {
+    "type": "PERSON",
+    "label": "Person",
+    "icon": "e7fd",
+    "color": 4280391411,
+    "properties": {
+      "description": "Represents an individual person",
+      "required_fields": ["name", "age", "gender"]
+    }
+  },
+  {
+    "type": "NORP",
+    "label": "Group",
+    "icon": "e7ef",
+    "color": 4286141768,
+    "properties": {
+      "description": "Represents a national, religious, or political group",
+      "required_fields": ["name", "type"]
+    }
+  },
+  {
+    "type": "FAC",
+    "label": "Facility",
+    "icon": "e559",
+    "color": 4294961979,
+    "properties": {
+      "description": "Represents buildings, airports, highways, bridges, etc.",
+      "required_fields": ["name", "location"]
+    }
+  },
+  {
+    "type": "ORG",
+    "label": "Organization",
+    "icon": "e7ef",
+    "color": 4286141768,
+    "properties": {
+      "description": "Represents companies, agencies, institutions, etc.",
+      "required_fields": ["name", "industry"]
+    }
+  },
+  {
+    "type": "GPE",
+    "label": "Geopolitical Entity",
+    "icon": "e0c8",
+    "color": 4294198070,
+    "properties": {
+      "description": "Represents countries, cities, states",
+      "required_fields": ["name", "type"]
+    }
+  },
+  {
+    "type": "LOC",
+    "label": "Location",
+    "icon": "e55f",
+    "color": 4283215696,
+    "properties": {
+      "description": "Represents non-GPE locations, mountain ranges, bodies of water",
+      "required_fields": ["name", "coordinates"]
+    }
+  },
+  {
+    "type": "PRODUCT",
+    "label": "Product",
+    "icon": "e8cb",
+    "color": 4283215696,
+    "properties": {
+      "description": "Represents objects, vehicles, foods, etc.",
+      "required_fields": ["name", "category"]
+    }
+  },
+  {
+    "type": "EVENT",
+    "label": "Event",
+    "icon": "e878",
+    "color": 4294961979,
+    "properties": {
+      "description": "Represents named events, e.g. hurricanes, battles, wars, sports events",
+      "required_fields": ["name", "date"]
+    }
+  },
+  {
+    "type": "WORK_OF_ART",
+    "label": "Work of Art",
+    "icon": "e8b5",
+    "color": 4293467747,
+    "properties": {
+      "description": "Titles of books, songs, etc.",
+      "required_fields": ["title", "creator"]
+    }
+  },
+  {
+    "type": "LAW",
+    "label": "Law",
+    "icon": "e90e",
+    "color": 4286141768,
+    "properties": {
+      "description": "Named documents made into laws",
+      "required_fields": ["name", "jurisdiction"]
+    }
+  },
+  {
+    "type": "LANGUAGE",
+    "label": "Language",
+    "icon": "e894",
+    "color": 4286141768,
+    "properties": {
+      "description": "Any named language",
+      "required_fields": ["name", "region"]
+    }
+  },
+  {
+    "type": "DATE",
+    "label": "Date",
+    "icon": "e878",
+    "color": 4294961979,
+    "properties": {
+      "description": "Absolute or relative dates or periods",
+      "required_fields": ["date"]
+    }
+  },
+  {
+    "type": "TIME",
+    "label": "Time",
+    "icon": "e192",
+    "color": 4283215696,
+    "properties": {
+      "description": "Times smaller than a day",
+      "required_fields": ["time"]
+    }
+  },
+  {
+    "type": "PERCENT",
+    "label": "Percent",
+    "icon": "e227",
+    "color": 4286141768,
+    "properties": {
+      "description": "Percentage, including %",
+      "required_fields": ["value"]
+    }
+  },
+  {
+    "type": "MONEY",
+    "label": "Money",
+    "icon": "e263",
+    "color": 4286141768,
+    "properties": {
+      "description": "Monetary values, including unit",
+      "required_fields": ["amount", "currency"]
+    }
+  },
+  {
+    "type": "QUANTITY",
+    "label": "Quantity",
+    "icon": "e54f",
+    "color": 4286141768,
+    "properties": {
+      "description": "Measurements, as of weight or distance",
+      "required_fields": ["value", "unit"]
+    }
+  },
+  {
+    "type": "ORDINAL",
+    "label": "Ordinal",
+    "icon": "e899",
+    "color": 4286141768,
+    "properties": {
+      "description": "First, second, etc.",
+      "required_fields": ["value"]
+    }
+  },
+  {
+    "type": "CARDINAL",
+    "label": "Cardinal",
+    "icon": "e85e",
+    "color": 4286141768,
+    "properties": {
+      "description": "Numerals that do not fall under another type",
+      "required_fields": ["value"]
+    }
+  }
+]
