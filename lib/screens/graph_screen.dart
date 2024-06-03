@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import '../utils/preferences.dart';
 import '../components/graph_widget.dart';
 import '../models/graph.dart';
 import '../models/node.dart';
 import '../models/node_type.dart';
 import '../models/edge.dart';
+import '../models/edge_type.dart';
 import '../components/graph_title_widget.dart';
-import '../components/node_type_selector.dart';
+import '../components/node_type_drawer.dart';
 import '../utils/undo_stack.dart';
 import '../handlers/node_edge_handler.dart';
 import '../handlers/graph_actions.dart';
@@ -17,11 +17,13 @@ class GraphScreen extends StatefulWidget {
   final Preferences preferences;
   final Graph? initialGraph;
   final List<NodeType> nodeTypes;
+  final List<EdgeType> edgeTypes;
 
   GraphScreen({
     required this.preferences,
     this.initialGraph,
     required this.nodeTypes,
+    required this.edgeTypes,
   });
 
   @override
@@ -31,6 +33,7 @@ class GraphScreen extends StatefulWidget {
 class _GraphScreenState extends State<GraphScreen> {
   late Graph _graph;
   NodeType? _selectedNodeType;
+  EdgeType? _selectedEdgeType;
   Node? _draggingNode;
   Offset? _dragOffset;
   Offset? _initialDragPosition;
@@ -52,8 +55,17 @@ class _GraphScreenState extends State<GraphScreen> {
   void _selectNodeType(NodeType nodeType) {
     setState(() {
       _selectedNodeType = nodeType;
+      _selectedEdgeType = null;
     });
     print('Selected node type: ${_selectedNodeType?.label}'); // Debug print
+  }
+
+  void _selectEdgeType(EdgeType edgeType) {
+    setState(() {
+      _selectedNodeType = null;
+      _selectedEdgeType = edgeType;
+    });
+    print('Selected edge type: ${_selectedEdgeType?.label}'); // Debug print
   }
 
   void _addNodeAtPosition(Offset position) {
@@ -71,10 +83,6 @@ class _GraphScreenState extends State<GraphScreen> {
         _selectedNodes.clear();
         _selectedNodes.add(newNode);
         _selectedNodeType = null;
-      });
-
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
-        _nodeEdgeHandler.handleNodeDoubleTap(newNode, context, () => setState(() {}));
       });
     } else {
       print('No node type selected'); // Debug print
@@ -108,6 +116,10 @@ class _GraphScreenState extends State<GraphScreen> {
     _nodeEdgeHandler.handleNodeDoubleTap(node, context, () => setState(() {}));
   }
 
+  void _onEditEdgeProperties(Edge edge) {
+    _nodeEdgeHandler.handleEdgeDoubleTap(edge, context, () => setState(() {}));
+  }
+
   void _onAddEdge(Node node) {
     setState(() {
       if (_nodeEdgeHandler.edgeStartNode == null) {
@@ -134,10 +146,6 @@ class _GraphScreenState extends State<GraphScreen> {
     setState(() {
       _nodeEdgeHandler.removeEdge(edge);
     });
-  }
-
-  void _onEditEdge(Edge edge) {
-    _nodeEdgeHandler.handleEdgeDoubleTap(edge, context, () => setState(() {}));
   }
 
   void _onBackgroundTap(TapUpDetails details) {
@@ -214,7 +222,6 @@ class _GraphScreenState extends State<GraphScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButtonLocation: ExpandableFab.location,
       appBar: AppBar(
         title: GraphTitleWidget(
           title: _graph.title,
@@ -254,6 +261,12 @@ class _GraphScreenState extends State<GraphScreen> {
           ),
         ],
       ),
+      drawer: NodeTypeDrawer(
+        nodeTypes: widget.nodeTypes,
+        edgeTypes: widget.edgeTypes,
+        onNodeTypeSelected: _selectNodeType,
+        onEdgeTypeSelected: _selectEdgeType,
+      ),
       body: KeyboardListener(
         focusNode: FocusNode()..requestFocus(),
         onKeyEvent: _handleKeyEvent,
@@ -275,10 +288,10 @@ class _GraphScreenState extends State<GraphScreen> {
                     isShiftPressed: _isShiftPressed,
                     onEdgeDoubleTap: _onEdgeDoubleTap,
                     onEditNodeProperties: _onEditNodeProperties,
+                    onEditEdgeProperties: _onEditEdgeProperties,
                     onAddEdge: _onAddEdge,
                     onDeleteNode: _onDeleteNode,
                     onDeleteEdge: _onDeleteEdge,
-                    onEditEdge: _onEditEdge,
                   ),
                 ),
               ),
@@ -295,10 +308,6 @@ class _GraphScreenState extends State<GraphScreen> {
             ),
           ],
         ),
-      ),
-      floatingActionButton: NodeTypeSelector(
-        nodeTypes: widget.nodeTypes,
-        onNodeTypeSelected: _selectNodeType,
       ),
     );
   }

@@ -18,7 +18,7 @@ class GraphWidget extends StatelessWidget {
   final void Function(Node) onAddEdge;
   final void Function(Node) onDeleteNode;
   final void Function(Edge) onDeleteEdge;
-  final void Function(Edge) onEditEdge;
+  final void Function(Edge) onEditEdgeProperties;
 
   GraphWidget({
     required this.graph,
@@ -34,7 +34,7 @@ class GraphWidget extends StatelessWidget {
     required this.onAddEdge,
     required this.onDeleteNode,
     required this.onDeleteEdge,
-    required this.onEditEdge,
+    required this.onEditEdgeProperties,
   });
 
   @override
@@ -129,7 +129,7 @@ class GraphWidget extends StatelessWidget {
             PopupMenuItem<String>(
               value: 'edit_edge',
               child: Text('Edit Edge'),
-              onTap: () => onEditEdge(edge),
+              onTap: () => onEditEdgeProperties(edge),
             ),
             PopupMenuItem<String>(
               value: 'delete_edge',

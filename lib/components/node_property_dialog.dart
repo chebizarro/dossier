@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/node.dart';
 import '../models/edge.dart';
+import '../utils/undo_stack.dart';
 
 class NodePropertyDialog extends StatefulWidget {
   final Node? node;
@@ -8,6 +9,7 @@ class NodePropertyDialog extends StatefulWidget {
   final ValueChanged<Node>? onSaveNode;
   final ValueChanged<Edge>? onSaveEdge;
   final VoidCallback onUndoAction;
+  final UndoStack undoStack;
 
   NodePropertyDialog({
     this.node,
@@ -15,6 +17,7 @@ class NodePropertyDialog extends StatefulWidget {
     this.onSaveNode,
     this.onSaveEdge,
     required this.onUndoAction,
+    required this.undoStack,
   });
 
   @override
@@ -48,6 +51,18 @@ class _NodePropertyDialogState extends State<NodePropertyDialog> {
 
   void _saveNode() {
     widget.onUndoAction();
+    widget.undoStack.push(EditNodePropertyAction(
+      widget.node!,
+      'label',
+      widget.node!.label,
+      _labelController.text,
+    ));
+    widget.undoStack.push(EditNodePropertyAction(
+      widget.node!,
+      'example_property',
+      widget.node!.properties['example_property'],
+      _propertyController.text,
+    ));
     setState(() {
       widget.node!.label = _labelController.text;
       widget.node!.properties['example_property'] = _propertyController.text;
@@ -58,6 +73,12 @@ class _NodePropertyDialogState extends State<NodePropertyDialog> {
 
   void _saveEdge() {
     widget.onUndoAction();
+    widget.undoStack.push(EditEdgePropertyAction(
+      widget.edge!,
+      'label',
+      widget.edge!.label,
+      _edgeLabelController.text,
+    ));
     setState(() {
       widget.edge!.label = _edgeLabelController.text;
     });

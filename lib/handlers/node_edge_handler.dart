@@ -3,6 +3,7 @@ import '../models/graph.dart';
 import '../models/node.dart';
 import '../models/edge.dart';
 import '../utils/undo_stack.dart';
+import '../components/node_property_dialog.dart';
 
 class NodeEdgeHandler {
   Graph graph;
@@ -38,14 +39,35 @@ class NodeEdgeHandler {
   }
 
   void handleNodeDoubleTap(Node node, BuildContext context, VoidCallback onComplete) {
-    // Logic to handle double tap for editing properties
+    showDialog(
+      context: context,
+      builder: (context) => NodePropertyDialog(
+        node: node,
+        onSaveNode: (updatedNode) {
+          onComplete();
+        },
+        onUndoAction: () {
+          undoStack.push(EditNodePropertyAction(node, 'label', node.label, node.label));
+          undoStack.push(EditNodePropertyAction(node, 'example_property', node.properties['example_property'], node.properties['example_property']));
+        },
+        undoStack: undoStack,
+      ),
+    ).then((_) => onComplete());
   }
 
   void handleEdgeDoubleTap(Edge edge, BuildContext context, VoidCallback onComplete) {
-    // Logic to handle double tap for editing properties
-  }
-
-  void handleNodeTap(Node node, VoidCallback onComplete) {
-    // Logic to handle node tap
+    showDialog(
+      context: context,
+      builder: (context) => NodePropertyDialog(
+        edge: edge,
+        onSaveEdge: (updatedEdge) {
+          onComplete();
+        },
+        onUndoAction: () {
+          undoStack.push(EditEdgePropertyAction(edge, 'label', edge.label, edge.label));
+        },
+        undoStack: undoStack,
+      ),
+    ).then((_) => onComplete());
   }
 }

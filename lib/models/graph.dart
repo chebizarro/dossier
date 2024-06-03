@@ -17,7 +17,7 @@ class Graph {
     return Graph(
       title: json['title'],
       nodes: (json['nodes'] as List)
-          .map((nodeJson) => Node.fromJson(nodeJson, nodeTypeMap[nodeJson['nodeType']]!))
+          .map((nodeJson) => Node.fromJson(nodeJson))
           .toList(),
       edges: (json['edges'] as List)
           .map((edgeJson) => Edge.fromJson(edgeJson))

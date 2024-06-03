@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart'; // Ensure Offset is imported from flutter/material.dart
+import 'package:flutter/material.dart';
 import '../models/graph.dart';
 import '../models/node.dart';
 import '../models/edge.dart';
@@ -123,5 +123,43 @@ class MoveNodeAction implements UndoableAction {
   void redo() {
     node.x = newPosition.dx;
     node.y = newPosition.dy;
+  }
+}
+
+class EditNodePropertyAction implements UndoableAction {
+  final Node node;
+  final String propertyName;
+  final dynamic oldValue;
+  final dynamic newValue;
+
+  EditNodePropertyAction(this.node, this.propertyName, this.oldValue, this.newValue);
+
+  @override
+  void undo() {
+    node.properties[propertyName] = oldValue;
+  }
+
+  @override
+  void redo() {
+    node.properties[propertyName] = newValue;
+  }
+}
+
+class EditEdgePropertyAction implements UndoableAction {
+  final Edge edge;
+  final String propertyName;
+  final dynamic oldValue;
+  final dynamic newValue;
+
+  EditEdgePropertyAction(this.edge, this.propertyName, this.oldValue, this.newValue);
+
+  @override
+  void undo() {
+    edge.properties[propertyName] = oldValue;
+  }
+
+  @override
+  void redo() {
+    edge.properties[propertyName] = newValue;
   }
 }
