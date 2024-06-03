@@ -12,14 +12,15 @@ class NodeTypeSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return ExpandableFab(
       type: ExpandableFabType.up,
+      distance: 50,
       children: nodeTypes.map((nodeType) {
         return FloatingActionButton(
           mini: true,
           onPressed: () => onNodeTypeSelected(nodeType),
-          child: Icon(nodeType.icon),
           backgroundColor: nodeType.color,
           heroTag: nodeType.type,
           tooltip: nodeType.label,
+          child: Icon(nodeType.icon),
         );
       }).toList(),
     );

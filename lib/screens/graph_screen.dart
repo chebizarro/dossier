@@ -9,9 +9,9 @@ import '../models/node_type.dart';
 import '../models/edge.dart';
 import '../components/graph_title_widget.dart';
 import '../components/node_type_selector.dart';
-import '../utils/graph_operations.dart';
-import '../components/node_property_dialog.dart';
 import '../utils/undo_stack.dart';
+import '../handlers/node_edge_handler.dart';
+import '../handlers/graph_actions.dart';
 
 class GraphScreen extends StatefulWidget {
   final Preferences preferences;
@@ -35,13 +35,16 @@ class _GraphScreenState extends State<GraphScreen> {
   Offset? _dragOffset;
   Set<Node> _selectedNodes = {};
   bool _isShiftPressed = false;
-  Node? _edgeStartNode;
   final UndoStack _undoStack = UndoStack();
+  late NodeEdgeHandler _nodeEdgeHandler;
+  late GraphActions _graphActions;
 
   @override
   void initState() {
     super.initState();
     _graph = widget.initialGraph ?? Graph(title: 'Untitled Graph');
+    _nodeEdgeHandler = NodeEdgeHandler(graph: _graph, undoStack: _undoStack);
+    _graphActions = GraphActions(graph: _graph, nodeTypes: widget.nodeTypes);
     FocusManager.instance.primaryFocus?.unfocus();
   }
 
@@ -63,114 +66,83 @@ class _GraphScreenState extends State<GraphScreen> {
       );
 
       setState(() {
-        _graph.addNode(newNode);
+        _nodeEdgeHandler.addNode(newNode);
         _selectedNodes.clear();
         _selectedNodes.add(newNode);
         _selectedNodeType = null;
       });
 
-      _undoStack.addAction(
-        UndoAction(
-          undo: () {
-            setState(() {
-              _graph.removeNode(newNode);
-            });
-          },
-          redo: () {
-            setState(() {
-              _graph.addNode(newNode);
-            });
-          },
-        ),
-      );
-
       WidgetsBinding.instance?.addPostFrameCallback((_) {
-        _showNodePropertyDialog(newNode);
+        _nodeEdgeHandler.handleNodeDoubleTap(newNode, context, () => setState(() {}));
       });
     } else {
       print('No node type selected'); // Debug print
     }
   }
 
-  void _showNodePropertyDialog(Node node) {
-    final originalNode = Node(
-      id: node.id,
-      label: node.label,
-      nodeType: node.nodeType,
-      x: node.x,
-      y: node.y,
-      properties: Map<String, dynamic>.from(node.properties),
-    );
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return NodePropertyDialog(
-          node: node,
-          onSave: (updatedNode) {
-            setState(() {
-              _graph.nodes = _graph.nodes.map((n) => n.id == updatedNode.id ? updatedNode : n).toList();
-            });
-          },
-          onUndoAction: () {
-            _undoStack.addAction(
-              UndoAction(
-                undo: () {
-                  setState(() {
-                    _graph.nodes = _graph.nodes.map((n) => n.id == originalNode.id ? originalNode : n).toList();
-                  });
-                },
-                redo: () {
-                  setState(() {
-                    _graph.nodes = _graph.nodes.map((n) => n.id == node.id ? node : n).toList();
-                  });
-                },
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   void _onNodeTap(Node node, bool isShiftPressed) {
     setState(() {
-      if (_edgeStartNode == null) {
-        _edgeStartNode = node;
+      if (isShiftPressed) {
+        if (_selectedNodes.contains(node)) {
+          _selectedNodes.remove(node);
+        } else {
+          _selectedNodes.add(node);
+        }
       } else {
-        final newEdge = Edge(
-          id: DateTime.now().toString(),
-          fromNodeId: _edgeStartNode!.id,
-          toNodeId: node.id,
-        );
-        _graph.addEdge(newEdge);
-        _undoStack.addAction(
-          UndoAction(
-            undo: () {
-              setState(() {
-                _graph.removeEdge(newEdge);
-              });
-            },
-            redo: () {
-              setState(() {
-                _graph.addEdge(newEdge);
-              });
-            },
-          ),
-        );
-        _edgeStartNode = null;
+        _selectedNodes.clear();
+        _selectedNodes.add(node);
       }
     });
   }
 
   void _onNodeDoubleTap(Node node) {
-    _showNodePropertyDialog(node);
+    _nodeEdgeHandler.handleNodeDoubleTap(node, context, () => setState(() {}));
+  }
+
+  void _onEdgeDoubleTap(Edge edge) {
+    _nodeEdgeHandler.handleEdgeDoubleTap(edge, context, () => setState(() {}));
+  }
+
+  void _onEditNodeProperties(Node node) {
+    _nodeEdgeHandler.handleNodeDoubleTap(node, context, () => setState(() {}));
+  }
+
+  void _onAddEdge(Node node) {
+    setState(() {
+      if (_nodeEdgeHandler.edgeStartNode == null) {
+        _nodeEdgeHandler.edgeStartNode = node;
+      } else {
+        final newEdge = Edge(
+          id: DateTime.now().toString(),
+          fromNodeId: _nodeEdgeHandler.edgeStartNode!.id,
+          toNodeId: node.id,
+        );
+        _nodeEdgeHandler.addEdge(newEdge);
+        _nodeEdgeHandler.edgeStartNode = null;
+      }
+    });
+  }
+
+  void _onDeleteNode(Node node) {
+    setState(() {
+      _graph.removeNode(node);
+    });
+  }
+
+  void _onDeleteEdge(Edge edge) {
+    setState(() {
+      _graph.removeEdge(edge);
+    });
+  }
+
+  void _onEditEdge(Edge edge) {
+    _nodeEdgeHandler.handleEdgeDoubleTap(edge, context, () => setState(() {}));
   }
 
   void _onBackgroundTap(TapUpDetails details) {
     setState(() {
       _selectedNodes.clear();
-      _edgeStartNode = null;
+      _nodeEdgeHandler.edgeStartNode = null;
     });
     _addNodeAtPosition(details.localPosition);
   }
@@ -202,12 +174,20 @@ class _GraphScreenState extends State<GraphScreen> {
     });
   }
 
-  void _handleKeyEvent(RawKeyEvent event) {
-    if (event is RawKeyDownEvent) {
-      if (event.isControlPressed && event.logicalKey == LogicalKeyboardKey.keyZ) {
-        _undo();
-      } else if (event.isControlPressed && event.logicalKey == LogicalKeyboardKey.keyY) {
-        _redo();
+  void _handleKeyEvent(KeyEvent event) {
+    setState(() {
+      _isShiftPressed = HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftLeft) ||
+          HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftRight);
+    });
+
+    if (event is KeyDownEvent) {
+      if (HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft) ||
+          HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlRight)) {
+        if (event.logicalKey == LogicalKeyboardKey.keyZ) {
+          _undo();
+        } else if (event.logicalKey == LogicalKeyboardKey.keyY) {
+          _redo();
+        }
       }
     }
   }
@@ -224,30 +204,6 @@ class _GraphScreenState extends State<GraphScreen> {
     });
   }
 
-  Future<void> _saveGraph() async {
-    final path = await saveGraph(_graph);
-    if (path != null) {
-      setState(() {
-        _graph.filePath = path;
-      });
-    }
-  }
-
-  Future<void> _openGraph() async {
-    final graph = await openGraph(widget.nodeTypes);
-    if (graph != null) {
-      setState(() {
-        _graph = graph;
-      });
-    }
-  }
-
-  void _updateTitle(String title) {
-    setState(() {
-      _graph.title = title;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -255,7 +211,11 @@ class _GraphScreenState extends State<GraphScreen> {
       appBar: AppBar(
         title: GraphTitleWidget(
           title: _graph.title,
-          onTitleChanged: _updateTitle,
+          onTitleChanged: (title) {
+            setState(() {
+              _graphActions.updateTitle(title);
+            });
+          },
         ),
         actions: [
           IconButton(
@@ -268,17 +228,28 @@ class _GraphScreenState extends State<GraphScreen> {
           ),
           IconButton(
             icon: Icon(Icons.save),
-            onPressed: _saveGraph,
+            onPressed: () async {
+              await _graphActions.saveGraph();
+              setState(() {});
+            },
           ),
           IconButton(
             icon: Icon(Icons.folder_open),
-            onPressed: _openGraph,
+            onPressed: () async {
+              await _graphActions.openGraph((graph) {
+                setState(() {
+                  _graph = graph;
+                  _nodeEdgeHandler.graph = graph;
+                  _graphActions.graph = graph;
+                });
+              });
+            },
           ),
         ],
       ),
-      body: RawKeyboardListener(
+      body: KeyboardListener(
         focusNode: FocusNode()..requestFocus(),
-        onKey: _handleKeyEvent,
+        onKeyEvent: _handleKeyEvent,
         child: Column(
           children: [
             Expanded(
@@ -295,6 +266,12 @@ class _GraphScreenState extends State<GraphScreen> {
                     onNodeDragEnd: _onNodeDragEnd,
                     selectedNodes: _selectedNodes,
                     isShiftPressed: _isShiftPressed,
+                    onEdgeDoubleTap: _onEdgeDoubleTap,
+                    onEditNodeProperties: _onEditNodeProperties,
+                    onAddEdge: _onAddEdge,
+                    onDeleteNode: _onDeleteNode,
+                    onDeleteEdge: _onDeleteEdge,
+                    onEditEdge: _onEditEdge,
                   ),
                 ),
               ),

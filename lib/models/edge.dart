@@ -2,7 +2,7 @@ class Edge {
   final String id;
   final String fromNodeId;
   final String toNodeId;
-  final String label;
+  String label;
 
   Edge({
     required this.id,
