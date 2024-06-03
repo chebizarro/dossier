@@ -8,6 +8,7 @@ import '../models/node_type.dart';
 import '../components/graph_title_widget.dart';
 import '../components/node_type_selector.dart';
 import '../utils/graph_operations.dart';
+import '../components/node_property_dialog.dart';
 
 class GraphScreen extends StatefulWidget {
   final Preferences preferences;
@@ -62,9 +63,31 @@ class _GraphScreenState extends State<GraphScreen> {
         _selectedNodeType = null; // Reset the selected node type
         print('Node added at position: (${position.dx}, ${position.dy})'); // Debug print
       });
+
+      // Show node property dialog after adding the node
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
+        _showNodePropertyDialog(_graph.nodes.last);
+      });
     } else {
       print('No node type selected'); // Debug print
     }
+  }
+
+  void _showNodePropertyDialog(Node node) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return NodePropertyDialog(
+          node: node,
+          onSave: (updatedNode) {
+            setState(() {
+              // Update the node in the graph
+              _graph.nodes = _graph.nodes.map((n) => n.id == updatedNode.id ? updatedNode : n).toList();
+            });
+          },
+        );
+      },
+    );
   }
 
   void _onNodeTap(Node node, bool isShiftPressed) {
@@ -81,6 +104,10 @@ class _GraphScreenState extends State<GraphScreen> {
       }
       print('Selected nodes: ${_selectedNodes.map((n) => n.label).join(', ')}'); // Debug print
     });
+  }
+
+  void _onNodeDoubleTap(Node node) {
+    _showNodePropertyDialog(node);
   }
 
   void _onBackgroundTap(TapUpDetails details) {
@@ -180,6 +207,7 @@ class _GraphScreenState extends State<GraphScreen> {
                   child: GraphWidget(
                     graph: _graph,
                     onNodeTap: _onNodeTap,
+                    onNodeDoubleTap: _onNodeDoubleTap,
                     onNodeDragStart: _onNodeDragStart,
                     onNodeDragUpdate: _onNodeDragUpdate,
                     onNodeDragEnd: _onNodeDragEnd,

@@ -14,8 +14,8 @@ class Node {
     required this.nodeType,
     required this.x,
     required this.y,
-    this.properties = const {},
-  });
+    Map<String, dynamic>? properties,
+  }) : properties = properties ?? {};
 
   factory Node.fromJson(Map<String, dynamic> json, NodeType nodeType) {
     return Node(
@@ -32,10 +32,10 @@ class Node {
     return {
       'id': id,
       'label': label,
+      'nodeType': nodeType.type,
       'x': x,
       'y': y,
       'properties': properties,
-      'nodeType': nodeType.type,
     };
   }
 }
