@@ -11,6 +11,7 @@ abstract class UndoableAction {
 class UndoStack {
   final List<UndoableAction> _actions = [];
   int _index = -1;
+  final List<VoidCallback> _listeners = [];
 
   bool get canUndo => _index >= 0;
   bool get canRedo => _index < _actions.length - 1;
@@ -21,12 +22,14 @@ class UndoStack {
     }
     _actions.add(action);
     _index++;
+    _notifyListeners();
   }
 
   void undo() {
     if (canUndo) {
       _actions[_index].undo();
       _index--;
+      _notifyListeners();
     }
   }
 
@@ -34,12 +37,28 @@ class UndoStack {
     if (canRedo) {
       _index++;
       _actions[_index].redo();
+      _notifyListeners();
     }
   }
 
   void clear() {
     _actions.clear();
     _index = -1;
+    _notifyListeners();
+  }
+
+  void addListener(VoidCallback listener) {
+    _listeners.add(listener);
+  }
+
+  void removeListener(VoidCallback listener) {
+    _listeners.remove(listener);
+  }
+
+  void _notifyListeners() {
+    for (var listener in _listeners) {
+      listener();
+    }
   }
 }
 
@@ -160,11 +179,11 @@ class EditEdgePropertyAction implements UndoableAction {
 
   @override
   void undo() {
-
+    //edge.properties[propertyName] = oldValue;
   }
 
   @override
   void redo() {
-
+    //edge.properties[propertyName] = newValue;
   }
 }

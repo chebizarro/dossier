@@ -18,19 +18,22 @@ class GraphScreen extends StatefulWidget {
   final Graph? initialGraph;
   final List<NodeType> nodeTypes;
   final List<EdgeType> edgeTypes;
+  final ValueChanged<bool> onUndoStackChanged;
 
   GraphScreen({
     required this.preferences,
     this.initialGraph,
     required this.nodeTypes,
     required this.edgeTypes,
-  });
+    required this.onUndoStackChanged,
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _GraphScreenState createState() => _GraphScreenState();
+  GraphScreenState createState() => GraphScreenState();
 }
 
-class _GraphScreenState extends State<GraphScreen> {
+class GraphScreenState extends State<GraphScreen> {
   late Graph _graph;
   NodeType? _selectedNodeType;
   EdgeType? _selectedEdgeType;
@@ -55,11 +58,23 @@ class _GraphScreenState extends State<GraphScreen> {
       onClearUndoStack: _clearUndoStack,
     );
     FocusManager.instance.primaryFocus?.unfocus();
+    _undoStack.addListener(_notifyUndoStackChanged);
+  }
+
+  @override
+  void dispose() {
+    _undoStack.removeListener(_notifyUndoStackChanged);
+    super.dispose();
+  }
+
+  void _notifyUndoStackChanged() {
+    widget.onUndoStackChanged(_undoStack.canUndo || _undoStack.canRedo);
   }
 
   void _clearUndoStack() {
     setState(() {
       _undoStack.clear();
+      _notifyUndoStackChanged();
     });
   }
 
@@ -82,6 +97,7 @@ class _GraphScreenState extends State<GraphScreen> {
         if (!_isCtrlPressed) {
           appState.onNodeTypeSelected(null);
         }
+        _notifyUndoStackChanged();
       });
     } else {
       print('No node type selected'); // Debug print
@@ -133,6 +149,7 @@ class _GraphScreenState extends State<GraphScreen> {
         setState(() {
           _nodeEdgeHandler.addEdge(newEdge);
           appState.onEdgeTypeSelected(newEdge.edgeType);
+          _notifyUndoStackChanged();
         });
       } else {
         print('No edge type selected'); // Debug print
@@ -143,6 +160,7 @@ class _GraphScreenState extends State<GraphScreen> {
   void _onDeleteNode(Node node) {
     setState(() {
       _nodeEdgeHandler.removeNode(node);
+      _notifyUndoStackChanged();
     });
   }
 
@@ -152,6 +170,7 @@ class _GraphScreenState extends State<GraphScreen> {
         _nodeEdgeHandler.removeNode(node);
       }
       _selectedNodes.clear();
+      _notifyUndoStackChanged();
     });
   }
 
@@ -197,6 +216,7 @@ class _GraphScreenState extends State<GraphScreen> {
     if (_draggingNode != null && _initialDragPosition != null) {
       final newPosition = Offset(_draggingNode!.x, _draggingNode!.y);
       _nodeEdgeHandler.moveNode(_draggingNode!, _initialDragPosition!, newPosition);
+      _notifyUndoStackChanged();
     }
     setState(() {
       _draggingNode = null;
@@ -216,9 +236,9 @@ class _GraphScreenState extends State<GraphScreen> {
     if (event is KeyDownEvent) {
       if (_isCtrlPressed) {
         if (event.logicalKey == LogicalKeyboardKey.keyZ) {
-          _undo();
+          undo();
         } else if (event.logicalKey == LogicalKeyboardKey.keyY) {
-          _redo();
+          redo();
         }
       } else if (event.logicalKey == LogicalKeyboardKey.delete) {
         _deleteSelectedNodes();
@@ -226,15 +246,17 @@ class _GraphScreenState extends State<GraphScreen> {
     }
   }
 
-  void _undo() {
+  void undo() {
     setState(() {
       _undoStack.undo();
+      _notifyUndoStackChanged();
     });
   }
 
-  void _redo() {
+  void redo() {
     setState(() {
       _undoStack.redo();
+      _notifyUndoStackChanged();
     });
   }
 
@@ -266,6 +288,7 @@ class _GraphScreenState extends State<GraphScreen> {
   void _onDeleteEdge(Edge edge) {
     setState(() {
       _nodeEdgeHandler.removeEdge(edge);
+      _notifyUndoStackChanged();
     });
   }
 

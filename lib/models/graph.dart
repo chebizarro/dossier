@@ -1,5 +1,4 @@
 import 'node.dart';
-import 'node_type.dart';
 import 'edge.dart';
 
 class Graph {
@@ -12,8 +11,7 @@ class Graph {
       : nodes = nodes ?? [],
         edges = edges ?? [];
 
-  factory Graph.fromJson(Map<String, dynamic> json, List<NodeType> nodeTypes) {
-    Map<String, NodeType> nodeTypeMap = {for (var type in nodeTypes) type.type: type};
+  factory Graph.fromJson(Map<String, dynamic> json) {
     return Graph(
       title: json['title'],
       nodes: (json['nodes'] as List)
