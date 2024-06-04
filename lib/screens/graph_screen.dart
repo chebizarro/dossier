@@ -11,6 +11,7 @@ import '../components/graph_title_widget.dart';
 import '../utils/undo_stack.dart';
 import '../handlers/node_edge_handler.dart';
 import '../handlers/graph_actions.dart';
+import '../utils/app_state.dart';
 
 class GraphScreen extends StatefulWidget {
   final Preferences preferences;
@@ -38,6 +39,7 @@ class _GraphScreenState extends State<GraphScreen> {
   Offset? _initialDragPosition;
   Set<Node> _selectedNodes = {};
   bool _isShiftPressed = false;
+  bool _isCtrlPressed = false;
   final UndoStack _undoStack = UndoStack();
   late NodeEdgeHandler _nodeEdgeHandler;
   late GraphActions _graphActions;
@@ -61,28 +63,13 @@ class _GraphScreenState extends State<GraphScreen> {
     });
   }
 
-  void _selectNodeType(NodeType nodeType) {
-    setState(() {
-      _selectedNodeType = nodeType;
-      _selectedEdgeType = null;
-    });
-    print('Selected node type: ${_selectedNodeType?.label}'); // Debug print
-  }
-
-  void _selectEdgeType(EdgeType edgeType) {
-    setState(() {
-      _selectedNodeType = null;
-      _selectedEdgeType = edgeType;
-    });
-    print('Selected edge type: ${_selectedEdgeType?.label}'); // Debug print
-  }
-
   void _addNodeAtPosition(Offset position) {
-    if (_selectedNodeType != null) {
+    final appState = AppState.of(context);
+    if (appState?.selectedNodeType != null) {
       final newNode = Node(
         id: DateTime.now().toString(),
-        label: _selectedNodeType!.label,
-        nodeType: _selectedNodeType!,
+        label: appState!.selectedNodeType!.label,
+        nodeType: appState.selectedNodeType!,
         x: position.dx,
         y: position.dy,
       );
@@ -91,7 +78,10 @@ class _GraphScreenState extends State<GraphScreen> {
         _nodeEdgeHandler.addNode(newNode);
         _selectedNodes.clear();
         _selectedNodes.add(newNode);
-        _selectedNodeType = null;
+
+        if (!_isCtrlPressed) {
+          appState.onNodeTypeSelected(null);
+        }
       });
     } else {
       print('No node type selected'); // Debug print
@@ -132,14 +122,21 @@ class _GraphScreenState extends State<GraphScreen> {
   void _onAddEdge() {
     if (_selectedNodes.length == 2) {
       final nodes = _selectedNodes.toList();
-      final newEdge = Edge(
-        id: DateTime.now().toString(),
-        fromNodeId: nodes[0].id,
-        toNodeId: nodes[1].id,
-      );
-      setState(() {
-        _nodeEdgeHandler.addEdge(newEdge);
-      });
+      final appState = AppState.of(context);
+      if (appState?.selectedEdgeType != null) {
+        final newEdge = Edge(
+          id: DateTime.now().toString(),
+          fromNodeId: nodes[0].id,
+          toNodeId: nodes[1].id,
+          edgeType: appState!.selectedEdgeType!,
+        );
+        setState(() {
+          _nodeEdgeHandler.addEdge(newEdge);
+          appState.onEdgeTypeSelected(newEdge.edgeType);
+        });
+      } else {
+        print('No edge type selected'); // Debug print
+      }
     }
   }
 
@@ -212,11 +209,12 @@ class _GraphScreenState extends State<GraphScreen> {
     setState(() {
       _isShiftPressed = HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftLeft) ||
           HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftRight);
+      _isCtrlPressed = HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft) ||
+          HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlRight);
     });
 
     if (event is KeyDownEvent) {
-      if (HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft) ||
-          HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlRight)) {
+      if (_isCtrlPressed) {
         if (event.logicalKey == LogicalKeyboardKey.keyZ) {
           _undo();
         } else if (event.logicalKey == LogicalKeyboardKey.keyY) {

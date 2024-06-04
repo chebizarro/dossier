@@ -160,11 +160,11 @@ class EditEdgePropertyAction implements UndoableAction {
 
   @override
   void undo() {
-    edge.properties[propertyName] = oldValue;
+
   }
 
   @override
   void redo() {
-    edge.properties[propertyName] = newValue;
+
   }
 }

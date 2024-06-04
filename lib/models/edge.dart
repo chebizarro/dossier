@@ -1,33 +1,20 @@
+
+import 'edge_type.dart';
+
 class Edge {
-  String id;
-  String fromNodeId;
-  String toNodeId;
+  final String id;
+  final String fromNodeId;
+  final String toNodeId;
   String label;
-  Map<String, dynamic> properties;
+  final EdgeType edgeType;
 
   Edge({
     required this.id,
     required this.fromNodeId,
     required this.toNodeId,
     this.label = '',
-    Map<String, dynamic>? properties,
-  }) : properties = properties ?? {};
-
-  Edge copyWith({
-    String? id,
-    String? fromNodeId,
-    String? toNodeId,
-    String? label,
-    Map<String, dynamic>? properties,
-  }) {
-    return Edge(
-      id: id ?? this.id,
-      fromNodeId: fromNodeId ?? this.fromNodeId,
-      toNodeId: toNodeId ?? this.toNodeId,
-      label: label ?? this.label,
-      properties: properties ?? this.properties,
-    );
-  }
+    required this.edgeType,
+  });
 
   factory Edge.fromJson(Map<String, dynamic> json) {
     return Edge(
@@ -35,7 +22,7 @@ class Edge {
       fromNodeId: json['fromNodeId'],
       toNodeId: json['toNodeId'],
       label: json['label'],
-      properties: Map<String, dynamic>.from(json['properties']),
+      edgeType: EdgeType.fromJson(json['edgeType']),
     );
   }
 
@@ -45,7 +32,8 @@ class Edge {
       'fromNodeId': fromNodeId,
       'toNodeId': toNodeId,
       'label': label,
-      'properties': properties,
+      'edgeType': edgeType.toJson(),
     };
   }
 }
+
