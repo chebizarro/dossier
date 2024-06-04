@@ -8,7 +8,6 @@ import '../models/node_type.dart';
 import '../models/edge.dart';
 import '../models/edge_type.dart';
 import '../components/graph_title_widget.dart';
-import '../components/node_type_drawer.dart';
 import '../utils/undo_stack.dart';
 import '../handlers/node_edge_handler.dart';
 import '../handlers/graph_actions.dart';
@@ -144,7 +143,13 @@ class _GraphScreenState extends State<GraphScreen> {
     }
   }
 
-  void _onDeleteNode() {
+  void _onDeleteNode(Node node) {
+    setState(() {
+      _nodeEdgeHandler.removeNode(node);
+    });
+  }
+
+  void _deleteSelectedNodes() {
     setState(() {
       for (var node in _selectedNodes) {
         _nodeEdgeHandler.removeNode(node);
@@ -153,10 +158,13 @@ class _GraphScreenState extends State<GraphScreen> {
     });
   }
 
-  void _onDeleteEdge(Edge edge) {
-    setState(() {
-      _nodeEdgeHandler.removeEdge(edge);
-    });
+  void _deleteSelectedEdges() {
+    // Add logic for deleting edges if necessary
+  }
+
+  void _onDelete() {
+    _deleteSelectedNodes();
+    _deleteSelectedEdges();
   }
 
   void _onBackgroundTap(TapUpDetails details) {
@@ -215,7 +223,7 @@ class _GraphScreenState extends State<GraphScreen> {
           _redo();
         }
       } else if (event.logicalKey == LogicalKeyboardKey.delete) {
-        _onDeleteNode();
+        _deleteSelectedNodes();
       }
     }
   }
@@ -246,7 +254,7 @@ class _GraphScreenState extends State<GraphScreen> {
       items: [
         PopupMenuItem<void>(
           child: Text('Delete'),
-          onTap: _onDeleteNode,
+          onTap: _onDelete,
         ),
         if (_selectedNodes.length == 2)
           PopupMenuItem<void>(
@@ -257,54 +265,15 @@ class _GraphScreenState extends State<GraphScreen> {
     );
   }
 
+  void _onDeleteEdge(Edge edge) {
+    setState(() {
+      _nodeEdgeHandler.removeEdge(edge);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: GraphTitleWidget(
-          title: _graph.title,
-          onTitleChanged: (title) {
-            setState(() {
-              _graphActions.updateTitle(title);
-            });
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.undo),
-            onPressed: _undoStack.canUndo ? _undo : null,
-          ),
-          IconButton(
-            icon: Icon(Icons.redo),
-            onPressed: _undoStack.canRedo ? _redo : null,
-          ),
-          IconButton(
-            icon: Icon(Icons.save),
-            onPressed: () async {
-              await _graphActions.saveGraph();
-              setState(() {});
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.folder_open),
-            onPressed: () async {
-              await _graphActions.openGraph((graph) {
-                setState(() {
-                  _graph = graph;
-                  _nodeEdgeHandler.graph = graph;
-                  _graphActions.graph = graph;
-                });
-              });
-            },
-          ),
-        ],
-      ),
-      drawer: NodeTypeDrawer(
-        nodeTypes: widget.nodeTypes,
-        edgeTypes: widget.edgeTypes,
-        onNodeTypeSelected: _selectNodeType,
-        onEdgeTypeSelected: _selectEdgeType,
-      ),
       body: KeyboardListener(
         focusNode: FocusNode()..requestFocus(),
         onKeyEvent: _handleKeyEvent,
