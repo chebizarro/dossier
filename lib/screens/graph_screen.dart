@@ -130,26 +130,36 @@ class _GraphScreenState extends State<GraphScreen> {
     _nodeEdgeHandler.handleEdgeDoubleTap(edge, context, () => setState(() {}));
   }
 
-  void _onAddEdge(Node node) {
-    setState(() {
-      if (_nodeEdgeHandler.edgeStartNode == null) {
-        _nodeEdgeHandler.edgeStartNode = node;
-      } else {
-        final newEdge = Edge(
-          id: DateTime.now().toString(),
-          fromNodeId: _nodeEdgeHandler.edgeStartNode!.id,
-          toNodeId: node.id,
-        );
+  void _onAddEdge() {
+    if (_selectedNodes.length == 2) {
+      final nodes = _selectedNodes.toList();
+      final newEdge = Edge(
+        id: DateTime.now().toString(),
+        fromNodeId: nodes[0].id,
+        toNodeId: nodes[1].id,
+      );
+      setState(() {
         _nodeEdgeHandler.addEdge(newEdge);
-        _nodeEdgeHandler.edgeStartNode = null;
+      });
+    }
+  }
+
+  void _deleteSelectedNodes() {
+    setState(() {
+      for (var node in _selectedNodes) {
+        _nodeEdgeHandler.removeNode(node);
       }
+      _selectedNodes.clear();
     });
   }
 
-  void _onDeleteNode(Node node) {
-    setState(() {
-      _nodeEdgeHandler.removeNode(node);
-    });
+  void _deleteSelectedEdges() {
+    // Add logic for deleting edges if necessary
+  }
+
+  void _onDelete() {
+    _deleteSelectedNodes();
+    _deleteSelectedEdges();
   }
 
   void _onDeleteEdge(Edge edge) {
@@ -213,6 +223,8 @@ class _GraphScreenState extends State<GraphScreen> {
         } else if (event.logicalKey == LogicalKeyboardKey.keyY) {
           _redo();
         }
+      } else if (event.logicalKey == LogicalKeyboardKey.delete) {
+        _deleteSelectedNodes();
       }
     }
   }
@@ -227,6 +239,31 @@ class _GraphScreenState extends State<GraphScreen> {
     setState(() {
       _undoStack.redo();
     });
+  }
+
+  void _showContextMenu(BuildContext context, Offset position) {
+    final RenderBox overlay = Overlay.of(context)!.context.findRenderObject() as RenderBox;
+    showMenu(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromPoints(
+          overlay.localToGlobal(position),
+          overlay.localToGlobal(position),
+        ),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem<void>(
+          child: Text('Delete'),
+          onTap: _onDelete,
+        ),
+        if (_selectedNodes.length == 2)
+          PopupMenuItem<void>(
+            child: Text('Add Edge'),
+            onTap: _onAddEdge,
+          ),
+      ],
+    );
   }
 
   @override
@@ -285,6 +322,9 @@ class _GraphScreenState extends State<GraphScreen> {
             Expanded(
               child: GestureDetector(
                 onTapUp: _onBackgroundTap,
+                onSecondaryTapUp: (details) {
+                  _showContextMenu(context, details.globalPosition);
+                },
                 child: Container(
                   color: Colors.transparent,
                   child: GraphWidget(
@@ -300,7 +340,7 @@ class _GraphScreenState extends State<GraphScreen> {
                     onEditNodeProperties: _onEditNodeProperties,
                     onEditEdgeProperties: _onEditEdgeProperties,
                     onAddEdge: _onAddEdge,
-                    onDeleteNode: _onDeleteNode,
+                    onDeleteNode: _deleteSelectedNodes,
                     onDeleteEdge: _onDeleteEdge,
                   ),
                 ),
