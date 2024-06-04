@@ -120,14 +120,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   void _undo() {
     final graphScreenState = _currentGraphScreenState();
     if (graphScreenState != null) {
-      graphScreenState.undo();
+      //graphScreenState.undo();
     }
   }
 
   void _redo() {
     final graphScreenState = _currentGraphScreenState();
     if (graphScreenState != null) {
-      graphScreenState.redo();
+      //graphScreenState.redo();
     }
   }
 
@@ -138,7 +138,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     }
   }
 
-  void _selectNodeType(NodeType nodeType) {
+  void _selectNodeType(NodeType? nodeType) {
     setState(() {
       _selectedNodeType = nodeType;
       _selectedEdgeType = null;
@@ -164,7 +164,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     return AppState(
       selectedNodeType: _selectedNodeType,
       selectedEdgeType: _selectedEdgeType,
-      onNodeTypeSelected: (nodeType) => _selectNodeType(nodeType!),
+      onNodeTypeSelected: (nodeType) => _selectNodeType(nodeType),
       onEdgeTypeSelected: (edgeType) => _selectEdgeType(edgeType!),
       child: Scaffold(
         key: _scaffoldKey,
