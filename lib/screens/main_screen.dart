@@ -131,7 +131,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     }
   }
 
-  void _selectNodeType(NodeType? nodeType) {
+  void _saveGraphAsPdf() {
+    final graphScreenState = _currentGraphScreenState();
+    if (graphScreenState != null) {
+      graphScreenState.saveGraphAsPdf();
+    }
+  }
+
+  void _selectNodeType(NodeType nodeType) {
     setState(() {
       _selectedNodeType = nodeType;
       _selectedEdgeType = null;
@@ -157,8 +164,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     return AppState(
       selectedNodeType: _selectedNodeType,
       selectedEdgeType: _selectedEdgeType,
-      onNodeTypeSelected: (nodeType) => _selectNodeType(nodeType),
-      onEdgeTypeSelected: (edgeType) => _selectEdgeType(edgeType),
+      onNodeTypeSelected: (nodeType) => _selectNodeType(nodeType!),
+      onEdgeTypeSelected: (edgeType) => _selectEdgeType(edgeType!),
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
@@ -177,6 +184,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
             IconButton(
               icon: Icon(Icons.save),
               onPressed: _saveCurrentGraph,
+            ),
+            IconButton(
+              icon: Icon(Icons.picture_as_pdf),
+              onPressed: _saveGraphAsPdf,
             ),
             IconButton(
               icon: Icon(Icons.folder_open),

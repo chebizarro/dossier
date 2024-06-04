@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../utils/graph_pdf.dart';
 import '../utils/preferences.dart';
 import '../components/graph_widget.dart';
 import '../models/graph.dart';
@@ -7,11 +9,12 @@ import '../models/node.dart';
 import '../models/node_type.dart';
 import '../models/edge.dart';
 import '../models/edge_type.dart';
-import '../components/graph_title_widget.dart';
 import '../utils/undo_stack.dart';
 import '../handlers/node_edge_handler.dart';
 import '../handlers/graph_actions.dart';
 import '../utils/app_state.dart';
+import 'package:printing/printing.dart';
+import 'package:path_provider/path_provider.dart'; // Add this import for path provider
 
 class GraphScreen extends StatefulWidget {
   final Preferences preferences;
@@ -290,6 +293,18 @@ class GraphScreenState extends State<GraphScreen> {
       _nodeEdgeHandler.removeEdge(edge);
       _notifyUndoStackChanged();
     });
+  }
+
+  Future<void> saveGraphAsPdf() async {
+    final pdfGenerator = GraphPdf(_graph);
+    final pdfData = await pdfGenerator.generatePdf();
+
+    final output = await getTemporaryDirectory();
+    final file = File("${output.path}/graph.pdf");
+    await file.writeAsBytes(pdfData);
+
+    // Optionally, open the PDF file using the default PDF viewer
+    await Printing.sharePdf(bytes: pdfData, filename: 'graph.pdf');
   }
 
   @override
