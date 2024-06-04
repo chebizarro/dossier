@@ -144,22 +144,13 @@ class _GraphScreenState extends State<GraphScreen> {
     }
   }
 
-  void _deleteSelectedNodes() {
+  void _onDeleteNode() {
     setState(() {
       for (var node in _selectedNodes) {
         _nodeEdgeHandler.removeNode(node);
       }
       _selectedNodes.clear();
     });
-  }
-
-  void _deleteSelectedEdges() {
-    // Add logic for deleting edges if necessary
-  }
-
-  void _onDelete() {
-    _deleteSelectedNodes();
-    _deleteSelectedEdges();
   }
 
   void _onDeleteEdge(Edge edge) {
@@ -224,7 +215,7 @@ class _GraphScreenState extends State<GraphScreen> {
           _redo();
         }
       } else if (event.logicalKey == LogicalKeyboardKey.delete) {
-        _deleteSelectedNodes();
+        _onDeleteNode();
       }
     }
   }
@@ -241,21 +232,21 @@ class _GraphScreenState extends State<GraphScreen> {
     });
   }
 
-  void _showContextMenu(BuildContext context, Offset position) {
+  void _showContextMenu(BuildContext context, Offset globalPosition) {
     final RenderBox overlay = Overlay.of(context)!.context.findRenderObject() as RenderBox;
     showMenu(
       context: context,
       position: RelativeRect.fromRect(
         Rect.fromPoints(
-          overlay.localToGlobal(position),
-          overlay.localToGlobal(position),
+          overlay.localToGlobal(globalPosition),
+          overlay.localToGlobal(globalPosition),
         ),
         Offset.zero & overlay.size,
       ),
       items: [
         PopupMenuItem<void>(
           child: Text('Delete'),
-          onTap: _onDelete,
+          onTap: _onDeleteNode,
         ),
         if (_selectedNodes.length == 2)
           PopupMenuItem<void>(
@@ -340,7 +331,7 @@ class _GraphScreenState extends State<GraphScreen> {
                     onEditNodeProperties: _onEditNodeProperties,
                     onEditEdgeProperties: _onEditEdgeProperties,
                     onAddEdge: _onAddEdge,
-                    onDeleteNode: _deleteSelectedNodes,
+                    onDeleteNode: _onDeleteNode,
                     onDeleteEdge: _onDeleteEdge,
                   ),
                 ),
