@@ -44,6 +44,11 @@ dependencies:
   pdf: ^3.10.8
   graphql_flutter: ^5.2.0-beta.7
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  linux: true
+  image_path: "assets/icon/icon.png" # Path to your main app icon
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +60,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -74,6 +80,7 @@ flutter:
   assets:
     - assets/node_types.json
     - assets/edge_types.json
+    - assets/icon/icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
