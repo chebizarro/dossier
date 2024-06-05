@@ -1,5 +1,9 @@
-import 'node.dart';
-import 'edge.dart';
+import 'node_type.dart';
+import 'edge_type.dart';
+
+part 'node.dart';
+part 'edge.dart';
+
 
 class Graph {
   String title;

@@ -1,5 +1,4 @@
-
-import 'edge_type.dart';
+part of 'graph.dart';
 
 class Edge {
   final String id;
