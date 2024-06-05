@@ -1,6 +1,6 @@
-# dossier
+# Dossier
 
-A new Flutter project.
+A simple charting program for OSINT investigations
 
 ## Getting Started
 
