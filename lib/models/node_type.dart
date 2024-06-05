@@ -19,7 +19,8 @@ class NodeType {
     return NodeType(
       type: json['type'],
       label: json['label'],
-      icon: IconData(int.parse(json['icon'], radix: 16), fontFamily: 'MaterialIcons'),
+      icon: IconData(int.parse(json['icon'], radix: 16),
+          fontFamily: 'MaterialIcons'),
       color: Color(json['color']),
       properties: Map<String, dynamic>.from(json['properties']),
     );

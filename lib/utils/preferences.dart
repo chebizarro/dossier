@@ -1,30 +1,26 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Preferences {
-  bool startMaximized;
-
-  Preferences({required this.startMaximized});
-
-  factory Preferences.fromJson(Map<String, dynamic> json) {
-    return Preferences(
-      startMaximized: json['startMaximized'],
-    );
+  Future<void> savePreferences(Map<String, dynamic> preferences) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    preferences.forEach((key, value) {
+      if (value is String) {
+        prefs.setString(key, value);
+      } else if (value is int) {
+        prefs.setInt(key, value);
+      } else if (value is bool) {
+        prefs.setBool(key, value);
+      }
+    });
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'startMaximized': startMaximized,
-    };
-  }
-
-  Future<void> save() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setBool('startMaximized', startMaximized);
-  }
-
-  static Future<Preferences> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    bool startMaximized = prefs.getBool('startMaximized') ?? true; // Default to true
-    return Preferences(startMaximized: startMaximized);
+  Future<Map<String, dynamic>> loadPreferences(List<String> keys) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final Map<String, dynamic> preferences = {};
+    for (var key in keys) {
+      final value = prefs.get(key);
+      preferences[key] = value;
+    }
+    return preferences;
   }
 }

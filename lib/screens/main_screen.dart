@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../screens/graph_screen.dart';
+import '../transformers/rest_api_transformer.dart';
+import '../transformers/transformer_interface.dart';
 import '../utils/preferences.dart';
 import '../models/node_type.dart';
 import '../models/edge_type.dart';
@@ -30,16 +32,86 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   bool _canUndo = false;
   bool _canRedo = false;
 
+  final Transformer _transformer = RestApiTransformer();
+  late Map<String, dynamic> _transformerPreferences;
+
   @override
   void initState() {
     super.initState();
-    _preferences = Preferences(startMaximized: false);
+    _preferences = Preferences();
     _loadNodeAndEdgeTypes().then((_) {
       setState(() {
         _tabController = TabController(length: _graphs.length, vsync: this);
       });
     });
+    _loadTransformerPreferences();
   }
+
+  void _runTransformer(String input) async {
+    final nodes = await _transformer.transform(input);
+    final edges = await _transformer.transformEdges(input);
+
+    setState(() {
+      final currentGraph = _graphs[_tabController.index];
+      currentGraph.nodes.addAll(nodes);
+      currentGraph.edges.addAll(edges);
+    });
+  }
+
+  void _showTransformerPreferencesDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final usernameController = TextEditingController(text: _transformerPreferences['username']);
+        final passwordController = TextEditingController(text: _transformerPreferences['password']);
+        final numEntitiesController = TextEditingController(text: _transformerPreferences['num_entities'].toString());
+        final apiUrlController = TextEditingController(text: _transformerPreferences['api_url']);
+
+        return AlertDialog(
+          title: Text('Transformer Preferences'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: usernameController,
+                decoration: InputDecoration(labelText: 'Username'),
+              ),
+              TextField(
+                controller: passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
+              ),
+              TextField(
+                controller: numEntitiesController,
+                decoration: InputDecoration(labelText: 'Number of Entities'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: apiUrlController,
+                decoration: InputDecoration(labelText: 'API URL'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _transformerPreferences['username'] = usernameController.text;
+                  _transformerPreferences['password'] = passwordController.text;
+                  _transformerPreferences['num_entities'] = int.parse(numEntitiesController.text);
+                  _transformerPreferences['api_url'] = apiUrlController.text;
+                });
+                _saveTransformerPreferences();
+                Navigator.of(context).pop();
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   void dispose() {
@@ -59,6 +131,17 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       _edgeTypes = edgeTypesData.map((data) => EdgeType.fromJson(data)).toList();
     });
   }
+
+  Future<void> _loadTransformerPreferences() async {
+    final keys = ['username', 'password', 'num_entities', 'api_url'];
+    _transformerPreferences = await _preferences.loadPreferences(keys);
+    _transformer.setPreferences(_transformerPreferences);
+  }
+
+  Future<void> _saveTransformerPreferences() async {
+    await _preferences.savePreferences(_transformerPreferences);
+  }
+
 
   void _addNewGraph() {
     setState(() {
@@ -197,6 +280,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               icon: Icon(Icons.add),
               onPressed: _addNewGraph,
             ),
+            IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: _showTransformerPreferencesDialog,
+            ),
+
           ],
           bottom: _graphs.isNotEmpty
               ? TabBar(
