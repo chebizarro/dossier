@@ -1,5 +1,5 @@
 name: dossier
-description: "A new Flutter project."
+description: "A lighweight OSINT investigation and graphing tool"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -45,6 +45,8 @@ dependencies:
   graphql_flutter: ^5.2.0-beta.7
   equatable: ^2.0.5
   flutter_bloc: ^8.1.5
+  graph_repository:
+    path: packages/graph_repository
 
 flutter_launcher_icons:
   android: true

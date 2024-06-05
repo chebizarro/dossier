@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import '../models/graph.dart';
+import '../../packages/dossier_api/lib/src/models/graph.dart';
 
 class GraphOperations {
   static Future<String?> saveGraph(Graph graph) async {

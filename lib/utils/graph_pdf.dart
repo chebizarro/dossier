@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import '../models/graph.dart';
+import '../../packages/dossier_api/lib/src/models/graph.dart';
 import '../models/node.dart';
 import '../models/edge.dart';
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'screens/main_screen.dart';
-import 'models/graph_bloc.dart';
-import 'models/graph_event.dart';
+import '../packages/dossier_api/lib/src/models/graph_bloc.dart';
+import '../packages/dossier_api/lib/src/models/graph_event.dart';
 
 void main() {
   runApp(MyApp());

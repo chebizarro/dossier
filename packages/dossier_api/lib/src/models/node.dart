@@ -1,4 +1,4 @@
-part of 'graph.dart';
+import 'node_type.dart';
 
 class Node {
   String id;

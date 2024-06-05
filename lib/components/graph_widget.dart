@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/graph_state.dart';
-import '../models/graph.dart';
+import '../../packages/dossier_api/lib/src/models/graph_state.dart';
+import '../../packages/dossier_api/lib/src/models/graph.dart';
 
 class GraphWidget extends StatelessWidget {
   final GraphState graphState;

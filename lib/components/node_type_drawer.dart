@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/node_type.dart';
-import '../models/edge_type.dart';
+import '../../packages/dossier_api/lib/src/models/node_type.dart';
+import '../../packages/dossier_api/lib/src/models/edge_type.dart';
 
 class NodeTypeDrawer extends StatelessWidget {
   final List<NodeType> nodeTypes;

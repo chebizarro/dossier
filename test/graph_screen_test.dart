@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dossier/screens/graph_screen.dart';
-import 'package:dossier/models/graph.dart';
-import 'package:dossier/models/node_type.dart';
-import 'package:dossier/models/edge_type.dart';
+import '../packages/dossier_api/lib/src/models/graph.dart';
+import '../packages/dossier_api/lib/src/models/node_type.dart';
+import '../packages/dossier_api/lib/src/models/edge_type.dart';
 import 'package:dossier/utils/preferences.dart';
 
 void main() {

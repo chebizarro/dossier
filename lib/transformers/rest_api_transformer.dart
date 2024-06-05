@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/graph.dart';
+import '../../packages/dossier_api/lib/src/models/graph.dart';
 import 'transformer_interface.dart';
 
 class RestApiTransformer implements Transformer {

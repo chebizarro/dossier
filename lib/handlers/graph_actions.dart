@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/graph.dart';
-import '../models/node_type.dart';
+import '../../packages/dossier_api/lib/src/models/graph.dart';
+import '../../packages/dossier_api/lib/src/models/node_type.dart';
 import '../utils/graph_operations.dart';
 
 class GraphActions {

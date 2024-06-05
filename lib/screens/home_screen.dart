@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
-import '../models/node_type.dart';
-import '../models/edge_type.dart';
+import '../../packages/dossier_api/lib/src/models/node_type.dart';
+import '../../packages/dossier_api/lib/src/models/edge_type.dart';
 import '../utils/preferences.dart';
 import 'graph_screen.dart';
 
